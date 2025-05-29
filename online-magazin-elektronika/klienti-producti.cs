@@ -77,11 +77,10 @@ namespace online_magazin_elektronika
         {
             if (!(listBox1.SelectedItem is Product p))
             {
-                MessageBox.Show("Моля изберет продукт от листа.");
+                MessageBox.Show("Моля изберете продукт от листа.");
                 return;
             }
 
-            // gather customer info
             string firstName = textBox4.Text.Trim();
             string lastName = textBox3.Text.Trim();
             string email = textBox6.Text.Trim();
@@ -89,7 +88,7 @@ namespace online_magazin_elektronika
 
             if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
             {
-                MessageBox.Show("Моля добавете вашето първо и последно име.");
+                MessageBox.Show("Моля добавете име и фамилия.");
                 return;
             }
 
@@ -100,13 +99,13 @@ namespace online_magazin_elektronika
                 {
                     try
                     {
-                        // 1) Insert new Customer
+                        
                         int newCustomerId;
                         using (var cmdCust = new SqlCommand(@"
-                            INSERT INTO dbo.Customers (FirstName, LastName, Email, Phone)
-                            VALUES (@fn, @ln, @em, @ph);
-                            SELECT CAST(SCOPE_IDENTITY() AS INT);
-                        ", cn, tran))
+                    INSERT INTO dbo.Customers (FirstName, LastName, Email, Phone)
+                    VALUES (@fn, @ln, @em, @ph);
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);
+                ", cn, tran))
                         {
                             cmdCust.Parameters.AddWithValue("@fn", firstName);
                             cmdCust.Parameters.AddWithValue("@ln", lastName);
@@ -116,35 +115,37 @@ namespace online_magazin_elektronika
                             newCustomerId = (int)cmdCust.ExecuteScalar();
                         }
 
-                        // 2) Insert new Order
+                        
                         using (var cmdOrder = new SqlCommand(@"
-                            INSERT INTO dbo.Orders (CustomerID, OrderDate, TotalAmount)
-                            VALUES (@cid, @dt, @amt);
-                        ", cn, tran))
+                    INSERT INTO dbo.Orders (CustomerID, OrderDate, TotalAmount, ProductsId)
+                    VALUES (@cid, @dt, @amt, @pid);
+                ", cn, tran))
                         {
                             cmdOrder.Parameters.AddWithValue("@cid", newCustomerId);
                             cmdOrder.Parameters.AddWithValue("@dt", DateTime.Now);
                             cmdOrder.Parameters.AddWithValue("@amt", p.Price);
+                            cmdOrder.Parameters.AddWithValue("@pid", p.ProductID);
                             cmdOrder.ExecuteNonQuery();
                         }
 
                         tran.Commit();
-                        MessageBox.Show($"Поръчка готова! CustomerID = {newCustomerId}");
+                        MessageBox.Show($"Поръчката е готова! CustomerID = {newCustomerId}");
                     }
                     catch (Exception ex)
                     {
                         tran.Rollback();
-                        MessageBox.Show("Error during purchase: " + ex.Message);
+                        MessageBox.Show("Грешка при поръчка: " + ex.Message);
                     }
                 }
             }
 
-            // clear input fields
+            // clear inputs
             textBox4.Clear();
             textBox3.Clear();
             textBox6.Clear();
             textBox5.Clear();
         }
+
 
         public class Product
         {
