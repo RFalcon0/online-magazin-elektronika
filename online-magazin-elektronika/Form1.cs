@@ -22,5 +22,12 @@ namespace online_magazin_elektronika
             kl.Show();
             this.Hide();
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            plashtaniq pl = new plashtaniq();
+            pl.Show();
+            this.Hide();
+        }
     }
 }
